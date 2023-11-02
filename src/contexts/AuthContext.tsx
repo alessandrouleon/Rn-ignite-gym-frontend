@@ -10,7 +10,7 @@ import {
   storageUserRemove,
 } from "@storage/storageUser";
 import { ReactNode, createContext, useEffect, useState } from "react";
-import { UserDTO } from "src/dtos/userDTO";
+import { UserDTO } from "src/dtos/UserDTO";
 
 interface AuthContextDataProps {
   user: UserDTO;

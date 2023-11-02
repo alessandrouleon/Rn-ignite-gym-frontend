@@ -8,7 +8,7 @@ import { AppNatigationRouteProps } from "@routes/app.routes";
 import { getGroupsService } from "@services/groups";
 import { AppError } from "@utils/error/AppError";
 import { getExercisesByService } from "@services/exercises";
-import { ExerciseDTO } from "@dtos/exerciseDTO";
+import { ExerciseDTO } from "@dtos/ExerciseDTO";
 import { Loading } from "@components/Loading";
 
 export function Home() {
@@ -19,8 +19,8 @@ export function Home() {
   const navigation = useNavigation<AppNatigationRouteProps>();
   
   const toast = useToast();
-  function handleOpenExerciseDetails() {
-    navigation.navigate("exercise");
+  function handleOpenExerciseDetails(exerciseId: string) {
+    navigation.navigate("exercise", {exerciseId});
   }
 
   async function fethGroups() {
@@ -98,7 +98,7 @@ export function Home() {
         <FlatList
           data={exercises}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ExerciseCard onPress={handleOpenExerciseDetails} data={item}/>}
+          renderItem={({ item }) => <ExerciseCard onPress={() => handleOpenExerciseDetails(item.id)} data={item}/>}
           showsVerticalScrollIndicator={false}
           _contentContainerStyle={{ paddingBottom: 20 }}
         />

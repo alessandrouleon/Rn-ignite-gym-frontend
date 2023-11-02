@@ -3,7 +3,7 @@
 import { TouchableOpacity, TouchableOpacityProps } from "react-native";
 import { HStack, Heading, Image, Text, VStack, Icon } from "native-base";
 import { AntDesign } from '@expo/vector-icons'; 
-import { ExerciseDTO } from "@dtos/exerciseDTO";
+import { ExerciseDTO } from "@dtos/ExerciseDTO";
 import { useEffect, useState } from "react";
 import { getExercisesThubsService } from "@services/exercises";
 

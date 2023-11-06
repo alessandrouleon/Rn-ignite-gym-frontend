@@ -20,9 +20,8 @@ import { useState } from "react";
 import { Alert, TouchableOpacity } from "react-native";
 import { useAuth } from "@hooks/useAuth";
 import { regexName, regexPassword } from "@utils/regexConstants";
-//import { api } from "@services/api";
 import { AppError } from "@utils/error/AppError";
-import { updateProfile } from "@services/profile";
+import { updateProfile, updateUserPhoto } from "@services/profile";
 
 interface FormDataProps {
   name: string;
@@ -72,7 +71,7 @@ const profileSchema = yup.object({
           .transform((value) => (!!value ? value : null))
           .required("Confirme a nova senha."),
     }),
-});
+}) as any;
 
 const PHOTO_SIZE = 33;
 
@@ -100,18 +99,18 @@ export function Profile() {
   async function handleUserImageSelect() {
     try {
       setPhotoIsLoading(true);
-      const photoselected = await ImagemPinker.launchImageLibraryAsync({
+      const photoSelected = await ImagemPinker.launchImageLibraryAsync({
         mediaTypes: ImagemPinker.MediaTypeOptions.Images,
         quality: 1,
         aspect: [4, 4],
         allowsEditing: true,
       });
 
-      if (photoselected.canceled) return;
+      if (photoSelected.canceled) return;
 
-      if (photoselected.assets[0].uri) {
+      if (photoSelected.assets[0].uri) {
         const photoInfo = await FileSystem.getInfoAsync(
-          photoselected.assets[0].uri
+          photoSelected.assets[0].uri
         );
 
         if (photoInfo.exists && photoInfo.size / 1024 / 1024 > 5) {
@@ -121,9 +120,24 @@ export function Profile() {
             bgColor: "red.500",
           });
         }
-        console.log("aqui", photoInfo);
 
-        setUserPhoto(photoselected.assets[0].uri);
+        const fileExtension = photoSelected.assets[0].uri.split('.').pop();
+        const nameImage = user.name.split(' ').join('');
+        const photoFile = {
+          name: `${nameImage}.${fileExtension}`.toLocaleLowerCase(),
+          uri: photoSelected.assets[0].uri,
+          type: `${photoSelected.assets[0].type}/${fileExtension}`
+        } as any;
+       
+        const userPhotoUploadForm = new FormData();
+        userPhotoUploadForm.append('avatar', photoFile);
+        await updateUserPhoto(userPhotoUploadForm);
+
+        toast.show({
+          title: "Foto atualizada com sucesso.",
+          placement: "top",
+          bgColor: "green.700",
+        });
       }
     } catch (error) {
       console.log(error);

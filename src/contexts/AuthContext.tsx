@@ -15,6 +15,7 @@ import { UserDTO } from "src/dtos/UserDTO";
 interface AuthContextDataProps {
   user: UserDTO;
   signIn: (email: string, password: string) => Promise<void>;
+  updateUserProfile: (userUpdated: UserDTO) => void;
   signOut: () => Promise<void>;
   isLoadingStorageDate: boolean;
 }
@@ -75,6 +76,15 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     }
   }
 
+  async function updateUserProfile(userUpdated: UserDTO) {
+    try {
+      setUser(userUpdated);
+      await storageUserSave(userUpdated);
+    }catch (error) {
+      throw error;
+    }
+  }
+
   async function loadUserData() {
     try {
       setIsLoadingStorageDate(true);
@@ -102,6 +112,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
         user,
         signIn,
         signOut,
+        updateUserProfile,
         isLoadingStorageDate,
       }}
     >

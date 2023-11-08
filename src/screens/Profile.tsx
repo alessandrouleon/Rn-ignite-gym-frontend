@@ -2,6 +2,7 @@ import { Button } from "@components/Button";
 import { Input } from "@components/Input";
 import { ScreenHeader } from "@components/ScreenHeader";
 import { UserPhoto } from "@components/userPhoto";
+import userPhotoDefault from "../../src/assets/userPhotoDefault.png";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as ImagemPinker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
@@ -16,12 +17,17 @@ import {
   VStack,
   useToast,
 } from "native-base";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, TouchableOpacity } from "react-native";
 import { useAuth } from "@hooks/useAuth";
 import { regexName, regexPassword } from "@utils/regexConstants";
 import { AppError } from "@utils/error/AppError";
-import { updateProfile, updateUserPhoto } from "@services/profile";
+import {
+  getAvatarUser,
+  updateProfile,
+  updateUserPhoto,
+} from "@services/profile";
+import { useFocusEffect } from "@react-navigation/native";
 
 interface FormDataProps {
   name: string;
@@ -78,12 +84,12 @@ const PHOTO_SIZE = 33;
 export function Profile() {
   const [isUpdate, setIsUpdate] = useState(false);
   const [photoIsLoading, setPhotoIsLoading] = useState(false);
-  const [userPhoto, setUserPhoto] = useState(
-    "https://avatars.githubusercontent.com/u/58829459?v=4"
-  );
+  const { user, updateUserProfile } = useAuth();
+  const [userPhoto, setUserPhoto] = useState(user.avatar);
+  const [updatePhoto, setUpdatePhoto] = useState(false);
 
   const toast = useToast();
-  const { user, updateUserProfile } = useAuth();
+
   const {
     control,
     handleSubmit,
@@ -121,17 +127,20 @@ export function Profile() {
           });
         }
 
-        const fileExtension = photoSelected.assets[0].uri.split('.').pop();
-        const nameImage = user.name.split(' ').join('');
+        const fileExtension = photoSelected.assets[0].uri.split(".").pop();
+        const nameImage = user.name.split(" ").join("");
         const photoFile = {
           name: `${nameImage}.${fileExtension}`.toLocaleLowerCase(),
           uri: photoSelected.assets[0].uri,
-          type: `${photoSelected.assets[0].type}/${fileExtension}`
+          type: `${photoSelected.assets[0].type}/${fileExtension}`,
         } as any;
-       
+
         const userPhotoUploadForm = new FormData();
-        userPhotoUploadForm.append('avatar', photoFile);
-        await updateUserPhoto(userPhotoUploadForm);
+        userPhotoUploadForm.append("avatar", photoFile);
+        const avatarResponse = await updateUserPhoto(userPhotoUploadForm);
+
+        const userUpdated = user;
+        userUpdated.avatar = avatarResponse.data.avatar;
 
         toast.show({
           title: "Foto atualizada com sucesso.",
@@ -173,6 +182,19 @@ export function Profile() {
     }
   }
 
+  const fetchAvatarUser = async () => {
+    const avatarUser = await getAvatarUser(user.avatar);
+    setUserPhoto(avatarUser);
+    setUpdatePhoto((prev) => !prev);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAvatarUser();
+    }, [updatePhoto])
+  );
+  
+
   return (
     <VStack flex={1}>
       <ScreenHeader title="Perfil" />
@@ -188,9 +210,7 @@ export function Profile() {
             />
           ) : (
             <UserPhoto
-              source={{
-                uri: userPhoto,
-              }}
+              source={user.avatar ? { uri: userPhoto } : userPhotoDefault }
               alt="Imagem do usuário"
               size={PHOTO_SIZE}
             />

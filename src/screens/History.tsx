@@ -6,6 +6,7 @@ import { getExerciseHistory } from "@services/history";
 import { AppError } from "@utils/error/AppError";
 import { Heading, SectionList, Text, VStack, useToast } from "native-base";
 import { useCallback, useState } from "react";
+import { Loading } from "@components/Loading";
 
 export function History() {
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +41,7 @@ export function History() {
   return (
     <VStack flex={1}>
       <ScreenHeader title="Histórico de Exercícios" />
+     { isLoading ? <Loading /> :
       <SectionList
         sections={execises}
         keyExtractor={(item) => item.id}
@@ -58,7 +60,7 @@ export function History() {
           </Text>
         )}
         showsVerticalScrollIndicator={false}
-      />
+      />}
     </VStack>
   );
 }
